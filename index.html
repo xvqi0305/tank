@@ -26,88 +26,108 @@
                 <button id="back-btn">返回主菜单</button>
             </div>
             <canvas id="gameCanvas"></canvas>
-            <!-- 移动端控制界面 -->
-            <div id="mobile-controls">
-                <div id="joystick-container">
-                    <div id="joystick-base">
-                        <div id="joystick-thumb"></div>
+            <div id="control-panel">
+                <div class="control-buttons">
+                    <div class="direction-buttons">
+                        <button class="ctrl-btn" id="up-btn">↑</button>
+                        <div class="middle-buttons">
+                            <button class="ctrl-btn" id="left-btn">←</button>
+                            <button class="ctrl-btn" id="right-btn">→</button>
+                        </div>
+                        <button class="ctrl-btn" id="down-btn">↓</button>
                     </div>
-                </div>
-                <div id="action-buttons">
-                    <button id="shoot-btn">射击</button>
+                    <button class="ctrl-btn" id="shoot-btn">射击</button>
                 </div>
             </div>
         </div>
     </div>
     <script src="game.js"></script>
     <style>
-    #mobile-controls {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 150px;
+    #control-panel {
+        width: 100%;
+        background: #222;
+        padding: 10px 0;
+    }
+
+    .control-buttons {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 20px;
-        pointer-events: none;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 0 20px;
     }
 
-    #joystick-container {
-        width: 120px;
-        height: 120px;
-        pointer-events: auto;
+    .direction-buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
     }
 
-    #joystick-base {
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.2);
-        border: 2px solid rgba(255, 255, 255, 0.4);
-        border-radius: 50%;
-        position: relative;
-    }
-
-    #joystick-thumb {
-        width: 50px;
-        height: 50px;
-        background: rgba(255, 255, 255, 0.5);
-        border: 2px solid rgba(255, 255, 255, 0.8);
-        border-radius: 50%;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        transition: transform 0.1s ease;
-    }
-
-    #action-buttons {
+    .middle-buttons {
         display: flex;
         gap: 20px;
-        pointer-events: auto;
+    }
+
+    .ctrl-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        border: 2px solid #444;
+        background: #333;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .ctrl-btn:active,
+    .ctrl-btn.pressed {
+        background: #444;
+        transform: scale(0.95);
     }
 
     #shoot-btn {
-        width: 80px;
-        height: 80px;
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
-        background: rgba(255, 50, 50, 0.6);
-        border: 2px solid rgba(255, 255, 255, 0.4);
-        color: white;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: background-color 0.2s;
+        background: #c33;
+        border-color: #d44;
     }
 
     #shoot-btn:active {
-        background: rgba(255, 50, 50, 0.8);
+        background: #d44;
     }
 
-    /* 在PC端隐藏移动控制 */
-    @media (min-width: 768px) {
-        #mobile-controls {
+    /* 响应式布局 */
+    @media (max-width: 480px) {
+        .control-buttons {
+            padding: 0 10px;
+        }
+        
+        .ctrl-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+        }
+        
+        .middle-buttons {
+            gap: 10px;
+        }
+        
+        #shoot-btn {
+            width: 50px;
+            height: 50px;
+        }
+    }
+
+    /* 在PC端隐藏控制面板 */
+    @media (min-width: 1024px) {
+        #control-panel {
             display: none;
         }
     }
