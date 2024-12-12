@@ -445,7 +445,7 @@ class Enemy extends Entity {
         ctx.translate(centerX, centerY);
         ctx.rotate((this.direction * Math.PI) / 2);
         
-        // 绘制外部六边形
+        // 绘制外部六���形
         this.drawHexagon(ctx, 0, 0, this.width / 2, colors.base, colors.accent);
         
         // 绘制内部装饰
@@ -511,6 +511,14 @@ class Game {
         this.isLevelCompleted = false;
         this.isGameCompleted = false;
 
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        this.joystickActive = false;
+        this.joystickPos = { x: 0, y: 0 };
+        
+        if (this.isMobile) {
+            this.initMobileControls();
+        }
+        
         this.initEventListeners();
 
         // 修改状态栏为竖排布局
@@ -541,6 +549,75 @@ class Game {
         window.addEventListener('keyup', (e) => {
             this.keys[e.key.toLowerCase()] = false;
         });
+    }
+
+    initMobileControls() {
+        const joystick = document.getElementById('joystick-base');
+        const thumb = document.getElementById('joystick-thumb');
+        const shootBtn = document.getElementById('shoot-btn');
+        
+        // 射击按钮事件
+        shootBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.playerShoot();
+        });
+
+        // 摇杆控制
+        joystick.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.joystickActive = true;
+            this.updateJoystickPosition(e.touches[0], joystick, thumb);
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (this.joystickActive) {
+                e.preventDefault();
+                this.updateJoystickPosition(e.touches[0], joystick, thumb);
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchend', () => {
+            if (this.joystickActive) {
+                this.joystickActive = false;
+                this.joystickPos = { x: 0, y: 0 };
+                thumb.style.transform = 'translate(-50%, -50%)';
+            }
+        });
+    }
+
+    updateJoystickPosition(touch, joystick, thumb) {
+        const rect = joystick.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        let x = touch.clientX - centerX;
+        let y = touch.clientY - centerY;
+        
+        // 限制摇杆移动范围
+        const maxDistance = rect.width / 2 - thumb.offsetWidth / 2;
+        const distance = Math.sqrt(x * x + y * y);
+        
+        if (distance > maxDistance) {
+            const angle = Math.atan2(y, x);
+            x = Math.cos(angle) * maxDistance;
+            y = Math.sin(angle) * maxDistance;
+        }
+        
+        // 更新摇杆位置
+        thumb.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+        
+        // 更新移动方向
+        this.joystickPos = {
+            x: x / maxDistance,
+            y: y / maxDistance
+        };
+        
+        // 更新玩家朝向
+        if (Math.abs(x) > Math.abs(y)) {
+            this.player.direction = x > 0 ? 1 : 3;
+        } else {
+            this.player.direction = y > 0 ? 2 : 0;
+        }
     }
 
     showLevelSelect() {
@@ -599,28 +676,44 @@ class Game {
     }
 
     update(deltaTime) {
-        const now = Date.now();
-        
-        // 处理玩家移动（每次移动一个格子）
-        if (now - this.lastMoveTime >= this.moveDelay) {
-            let moved = false;
-            
-            if (this.keys['w']) {
-                this.player.direction = 0;
-                moved = this.player.move(0, -this.gridSize, this.obstacles, this.canvas.width, this.canvas.height);
-            } else if (this.keys['s']) {
-                this.player.direction = 2;
-                moved = this.player.move(0, this.gridSize, this.obstacles, this.canvas.width, this.canvas.height);
-            } else if (this.keys['a']) {
-                this.player.direction = 3;
-                moved = this.player.move(-this.gridSize, 0, this.obstacles, this.canvas.width, this.canvas.height);
-            } else if (this.keys['d']) {
-                this.player.direction = 1;
-                moved = this.player.move(this.gridSize, 0, this.obstacles, this.canvas.width, this.canvas.height);
+        if (this.isMobile && this.joystickActive) {
+            // 移动端控制逻辑
+            if (Date.now() - this.lastMoveTime >= this.moveDelay) {
+                const dx = Math.round(this.joystickPos.x) * this.gridSize;
+                const dy = Math.round(this.joystickPos.y) * this.gridSize;
+                
+                if (dx !== 0 || dy !== 0) {
+                    const moved = this.player.move(dx, dy, this.obstacles, 
+                        this.canvas.width, this.canvas.height);
+                    if (moved) {
+                        this.lastMoveTime = Date.now();
+                    }
+                }
             }
-            
-            if (moved) {
-                this.lastMoveTime = now;
+        } else {
+            // PC端键盘控制逻辑保持不变
+            // 处理玩家移动（每次移动一个格子）
+            const now = Date.now();
+            if (now - this.lastMoveTime >= this.moveDelay) {
+                let moved = false;
+                
+                if (this.keys['w']) {
+                    this.player.direction = 0;
+                    moved = this.player.move(0, -this.gridSize, this.obstacles, this.canvas.width, this.canvas.height);
+                } else if (this.keys['s']) {
+                    this.player.direction = 2;
+                    moved = this.player.move(0, this.gridSize, this.obstacles, this.canvas.width, this.canvas.height);
+                } else if (this.keys['a']) {
+                    this.player.direction = 3;
+                    moved = this.player.move(-this.gridSize, 0, this.obstacles, this.canvas.width, this.canvas.height);
+                } else if (this.keys['d']) {
+                    this.player.direction = 1;
+                    moved = this.player.move(this.gridSize, 0, this.obstacles, this.canvas.width, this.canvas.height);
+                }
+                
+                if (moved) {
+                    this.lastMoveTime = now;
+                }
             }
         }
 
@@ -996,7 +1089,7 @@ class Game {
     }
 
     drawStatusBar() {
-        // 绘制状���栏背景
+        // 绘制状态栏背景
         this.ctx.fillStyle = '#222';
         this.ctx.fillRect(0, 0, this.statusBarWidth, this.canvas.height);
         
