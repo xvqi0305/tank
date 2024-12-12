@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>坦克大战</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- 关卡选择界面 -->
+        <div id="level-select" class="screen">
+            <h1>坦克大战</h1>
+            <div class="level-buttons">
+                <button id="level1" class="level-btn">第一关</button>
+                <button id="level2" class="level-btn" disabled>第二关</button>
+                <button id="level3" class="level-btn" disabled>第三关</button>
+            </div>
+        </div>
+
+        <!-- 游戏界面 -->
+        <div id="game-screen" class="screen hidden">
+            <div class="game-header">
+                <span id="health">生命值: 5</span>
+                <span id="level">等级: 1</span>
+                <span id="exp">经验值: 0/3</span>
+                <button id="back-btn">返回主菜单</button>
+            </div>
+            <canvas id="gameCanvas"></canvas>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html> 
